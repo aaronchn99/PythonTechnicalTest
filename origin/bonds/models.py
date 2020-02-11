@@ -1,8 +1,11 @@
-from django.db import models
 import json
+
+from django.db import models
+from django.contrib.auth.models import User
 
 
 class Bond(models.Model):
+    owner = models.ForeignKey(User, on_delete=models.CASCADE)
     isin = models.CharField(max_length=12)
     size = models.BigIntegerField()
     currency = models.CharField(max_length=3)
