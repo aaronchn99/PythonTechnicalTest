@@ -16,9 +16,10 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 
-from bonds.views import HelloWorld
+from bonds.views import HelloWorld, BondAPI
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', HelloWorld.as_view())
+    path('', HelloWorld.as_view()),
+    path('bonds/', BondAPI.as_view())
 ]
