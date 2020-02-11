@@ -22,6 +22,7 @@ class BondAPI(APIView):
     def get(self, request):
         params = request.query_params
         # Filtering, only done if parameter and value exist in query
+        # and field exist in table
         bond_fields = list(map(lambda f: f.name, Bond._meta.get_fields()))
         filter_params = {
             field: value for field, value in params.items()
