@@ -87,7 +87,7 @@ class PostGetTest(APITestCase):
         self.post_bonds()
         resp = self.client.get("/bonds/", format="json")
         resp.render()
-        results = json.loads(resp.content)
+        results = json.loads(resp.content.decode('utf-8'))
         for i in range(len(results)):
             assert results[i] == test_bonds[i]["exp_output"]
 
@@ -100,7 +100,7 @@ class PostGetTest(APITestCase):
                     format="json"
                 )
                 resp.render()
-                results = json.loads(resp.content)
+                results = json.loads(resp.content.decode('utf-8'))
                 assert tb["exp_output"] in results
 
 
@@ -109,14 +109,14 @@ class AuthTest(APITestCase):
         resp = self.client.get("/bonds/", format="json")
         resp.render()
         exp_msg = {"detail": "Authentication credentials were not provided."}
-        assert json.loads(resp.content) == exp_msg
+        assert json.loads(resp.content.decode('utf-8')) == exp_msg
 
     def test_reject_post(self):
         for tb in test_bonds:
             resp = self.client.post("/bonds/", tb["input"], format='json')
             resp.render()
             exp_msg = {"detail": "Authentication credentials were not provided."}
-            assert json.loads(resp.content) == exp_msg
+            assert json.loads(resp.content.decode('utf-8')) == exp_msg
 
     def test_access_control(self):
         user1 = make_fake_user("testuser1", "test12345")
@@ -141,7 +141,7 @@ class AuthTest(APITestCase):
         self.client.login(**user1)
         resp = self.client.get("/bonds/", format="json")
         resp.render()
-        results = json.loads(resp.content)
+        results = json.loads(resp.content.decode('utf-8'))
         bonds_list = list()
         for b in user1_bonds:
             assert b["exp_output"] in results
@@ -153,7 +153,7 @@ class AuthTest(APITestCase):
         self.client.login(**user2)
         resp = self.client.get("/bonds/", format="json")
         resp.render()
-        results = json.loads(resp.content)
+        results = json.loads(resp.content.decode('utf-8'))
         bonds_list = list()
         for b in user2_bonds:
             assert b["exp_output"] in results

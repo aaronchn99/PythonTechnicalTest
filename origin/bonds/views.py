@@ -73,7 +73,7 @@ class BondAPI(APIView):
             context=ssl.create_default_context(cafile=certifi.where())
         )
         # Parse and select lei field
-        gleif_data = json.loads(gleif_response.read())
+        gleif_data = json.loads(gleif_response.read().decode('utf-8'))
         legal_name = gleif_data[0]["Entity"]["LegalName"]["$"]
         return legal_name
 
