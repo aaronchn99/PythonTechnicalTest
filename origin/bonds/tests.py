@@ -11,6 +11,7 @@ from django.contrib.auth import get_user_model
 testDataDir = os.path.join(os.path.dirname(os.path.abspath(__file__)),"testdata")
 TEST_DATA_LIMIT = 10
 
+# Parse test data files
 with open(os.path.join(testDataDir, "lei_list.json"), "r", encoding="utf-8") as f:
     testleis = json.load(f)[:TEST_DATA_LIMIT]
 with open(os.path.join(testDataDir, "test_bonds.json"), "r", encoding="utf-8") as f:
@@ -18,6 +19,7 @@ with open(os.path.join(testDataDir, "test_bonds.json"), "r", encoding="utf-8") a
     test_bonds = data[:TEST_DATA_LIMIT]
 
 
+# Called after inserting a record, compares it with the original input bond
 def test_db_records():
     for tb in test_bonds:
         tb = cp.deepcopy(tb["exp_output"])
@@ -30,6 +32,7 @@ def test_db_records():
         tb["maturity"] = datetime.strptime(tb["maturity"],"%Y-%m-%d").date()
         assert results == tb
 
+# Creates user with passed credentials, returns User instance and credentials
 def make_fake_user(username, password):
     User = get_user_model()
     user = User.objects.create_user(username, '', password)
@@ -105,12 +108,14 @@ class PostGetTest(APITestCase):
 
 
 class AuthTest(APITestCase):
+    # Check for rejection when attempting to access bonds without login
     def test_reject_get(self):
         resp = self.client.get("/bonds/", format="json")
         resp.render()
         exp_msg = {"detail": "Authentication credentials were not provided."}
         assert json.loads(resp.content.decode('utf-8')) == exp_msg
 
+    # Check for rejection when attempting to post bonds without login
     def test_reject_post(self):
         for tb in test_bonds:
             resp = self.client.post("/bonds/", tb["input"], format='json')
@@ -118,44 +123,39 @@ class AuthTest(APITestCase):
             exp_msg = {"detail": "Authentication credentials were not provided."}
             assert json.loads(resp.content.decode('utf-8')) == exp_msg
 
+    # Posts bonds as 2 separate users, checks if user can see all their and only
+    # their bonds
     def test_access_control(self):
         user1 = make_fake_user("testuser1", "test12345")
         user2 = make_fake_user("testuser2", "test67890")
         # Post User 1 bonds
-        self.client.login(**user1)
         user1_bonds = test_bonds[:len(test_bonds)//2]
-        print("Posting user 1 bonds (May take a while)")
-        for tb in user1_bonds:
-            resp = self.client.post("/bonds/", tb["input"], format='json')
-            self.assertJSONEqual(resp.data, json.dumps(tb["exp_output"]))
-        self.client.logout()
+        self.post_user_bonds(user1, user1_bonds)
         # Post User 2 bonds
-        self.client.login(**user2)
         user2_bonds = test_bonds[len(test_bonds)//2:]
-        print("Posting user 2 bonds (May take a while)")
-        for tb in user2_bonds:
+        self.post_user_bonds(user2, user2_bonds)
+        # Get User 1 bonds, check if equal to original list
+        self.check_user_bonds(user1, user1_bonds)
+        # Get User 2 bonds, check if equal to original list
+        self.check_user_bonds(user1, user1_bonds)
+
+    # Login as user and post bonds
+    def post_user_bonds(self, user, bonds):
+        self.client.login(**user)
+        print("Posting "+user["username"]+" bonds (May take a while)")
+        for tb in bonds:
             resp = self.client.post("/bonds/", tb["input"], format='json')
             self.assertJSONEqual(resp.data, json.dumps(tb["exp_output"]))
         self.client.logout()
-        # Get User 1 bonds, check if equal to original list
-        self.client.login(**user1)
+
+    # Login as user and compare posted bonds with originals
+    def check_user_bonds(self, user, bonds):
+        self.client.login(**user)
         resp = self.client.get("/bonds/", format="json")
         resp.render()
         results = json.loads(resp.content.decode('utf-8'))
         bonds_list = list()
-        for b in user1_bonds:
-            assert b["exp_output"] in results
-            bonds_list.append(b["exp_output"])
-        for r in results:
-            assert r in bonds_list
-        self.client.logout()
-        # Get User 2 bonds, check if equal to original list
-        self.client.login(**user2)
-        resp = self.client.get("/bonds/", format="json")
-        resp.render()
-        results = json.loads(resp.content.decode('utf-8'))
-        bonds_list = list()
-        for b in user2_bonds:
+        for b in bonds:
             assert b["exp_output"] in results
             bonds_list.append(b["exp_output"])
         for r in results:

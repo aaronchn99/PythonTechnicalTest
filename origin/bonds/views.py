@@ -77,6 +77,8 @@ class BondAPI(APIView):
         legal_name = gleif_data[0]["Entity"]["LegalName"]["$"]
         return legal_name
 
+    # Checks if all the required fields of a posted bond is available
+    # If not, raise a key error
     @staticmethod
     def check_fields(data):
         missing_fields = list()
