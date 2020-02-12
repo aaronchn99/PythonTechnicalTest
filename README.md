@@ -55,3 +55,14 @@ We would also like to be able to add a filter such as:
 `GET /bonds/?legal_name=BNPPARIBAS`
 
 to reduce down the results.
+
+#### Usage notes
+
+This API requires logging into the site in order to access data. Login form is accessed at /auth/login. There are 2 users available:
+
+- Username: admin, Password: password123
+- Username: admin2, Password: 12345
+
+Additional users can be added in the /admin/ page, logging in using one of the above credentials
+
+Automatic Unit and Integration testing is done by running ./manage.py test

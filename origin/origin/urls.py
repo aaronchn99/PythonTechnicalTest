@@ -14,8 +14,9 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, re_path
 from django.conf.urls import include
+from django.views.generic import RedirectView
 
 from bonds.views import HelloWorld, BondAPI
 
@@ -23,4 +24,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('bonds/', BondAPI.as_view()),
     path('auth/', include('rest_framework.urls')),
+    path('auth/', RedirectView.as_view(url='/auth/login/?next=/bonds/', permanent=False)),
+    path('accounts/profile/', RedirectView.as_view(url='/bonds/', permanent=False)),
+    path('', RedirectView.as_view(url='/bonds/', permanent=False))
 ]
